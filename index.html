@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>計費記帳 App</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; display: flex; justify-content: center; padding: 20px; }
+        .card { background: white; width: 100%; max-width: 400px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); padding: 20px; text-align: center; }
+        .total-section { margin-bottom: 20px; padding: 20px; background: #eef2ff; border-radius: 10px; }
+        .total-amount { font-size: 3rem; font-weight: bold; color: #4f46e5; margin: 10px 0; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 20px; }
+        button { padding: 15px; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer; transition: 0.2s; }
+        .btn-msg { background: #4caf50; color: white; }
+        .btn-media { background: #2196f3; color: white; }
+        .btn-clear { background: #ff5252; color: white; width: 100%; margin-top: 10px; }
+        button:active { transform: scale(0.95); opacity: 0.9; }
+        .history { text-align: left; max-height: 300px; overflow-y: auto; border-top: 1px solid #eee; padding-top: 10px; }
+        .history-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #fafafa; font-size: 0.9rem; }
+        .time { color: #888; font-size: 0.8rem; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="total-section">
+        <div>目前總累積金額</div>
+        <div class="total-amount">$ <span id="totalDisplay">0</span></div>
+    </div>
+
+    <div class="btn-group">
+        <button class="btn-msg" onclick="addItem('訊息', 10)">+ 訊息 (10元)</button>
+        <button class="btn-media" onclick="addItem('照片/音檔', 50)">+ 照片/音檔 (50元)</button>
+    </div>
+
+    <div class="history" id="historyList">
+        </div>
+
+    <button class="btn-clear" onclick="clearData()">歸零並清除紀錄</button>
+</div>
+
+<script>
+    let data = JSON.parse(localStorage.getItem('billingData')) || { total: 0, items: [] };
+
+    function updateUI() {
+        document.getElementById('totalDisplay').innerText = data.total;
+        const list = document.getElementById('historyList');
+        list.innerHTML = data.items.map(item => `
+            <div class="history-item">
+                <span>${item.name} <span class="time">(${item.time})</span></span>
+                <span>$${item.price}</span>
+            </div>
+        `).reverse().join('');
+        localStorage.setItem('billingData', JSON.stringify(data));
+    }
+
+    function addItem(name, price) {
+        const now = new Date();
+        const timeStr = `${now.getHours()}:${now.getMinutes().toString().padStart(2, '0')}`;
+        data.total += price;
+        data.items.push({ name, price, time: timeStr });
+        updateUI();
+    }
+
+    function clearData() {
+        if(confirm("確定要清除所有紀錄並歸零嗎？")) {
+            data = { total: 0, items: [] };
+            updateUI();
+        }
+    }
+
+    // 初始載入
+    updateUI();
+</script>
+
+</body>
+</html>
